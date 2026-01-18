@@ -1,0 +1,12 @@
+torch==1.8.0
+torchvision==0.9.0
+
+# Other dependencies
+Pillow==6.2.2
+numpy==1.19.5
+oyaml==0.9
+comet-ml==3.0.2
+
+# torchvision==0.8.2
+fastapi
+uvicorn

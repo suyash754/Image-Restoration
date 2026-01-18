@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Image Inpainting Comparison</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #e0eafc, #cfdef3);
+      margin: 0;
+      padding: 40px 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #333;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+      color: #222;
+      font-weight: 700;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+      letter-spacing: 0.04em;
+      font-size: 2rem;
+    }
+
+    form {
+      background: #ffffffdd;
+      backdrop-filter: saturate(180%) blur(10px);
+      -webkit-backdrop-filter: saturate(180%) blur(10px);
+      padding: 30px 35px;
+      border-radius: 16px;
+      box-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.12),
+        inset 0 0 40px #fff9;
+      width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: box-shadow 0.3s ease;
+    }
+    form:hover {
+      box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.18),
+        inset 0 0 45px #fff9;
+    }
+
+    label {
+      font-weight: 600;
+      color: #444;
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+    }
+
+    input[type="file"] {
+      border: 1.8px solid #aaa;
+      border-radius: 10px;
+      padding: 12px 14px;
+      width: 100%;
+      font-size: 1rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+      background: #fdfdfd;
+      box-shadow: inset 1px 1px 3px #ececec;
+    }
+    input[type="file"]:hover,
+    input[type="file"]:focus {
+      border-color: #5a9bf6;
+      box-shadow: 0 0 8px #5a9bf6aa inset;
+      outline: none;
+      background: #fff;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 14px 0;
+      font-size: 1.15rem;
+      font-weight: 700;
+      border-radius: 12px;
+      border: none;
+      color: white;
+      background: linear-gradient(135deg, #0062f7, #0053d1);
+      box-shadow:
+        0 8px 18px rgba(0, 98, 247, 0.45),
+        0 4px 6px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: background 0.35s ease, box-shadow 0.35s ease, transform 0.2s ease;
+      user-select: none;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #0053d1, #003c97);
+      box-shadow:
+        0 10px 22px rgba(0, 83, 209, 0.6),
+        0 6px 8px rgba(0, 0, 0, 0.22);
+      transform: translateY(-2px);
+    }
+    button:active {
+      transform: translateY(1px);
+      box-shadow:
+        0 6px 12px rgba(0, 83, 209, 0.5),
+        0 3px 4px rgba(0, 0, 0, 0.18);
+    }
+
+    #status {
+      margin-top: 24px;
+      font-weight: 700;
+      font-size: 1.2rem;
+      min-height: 28px;
+      text-align: center;
+      color: #28a745; /* success green */
+      user-select: none;
+      transition: color 0.4s ease;
+      letter-spacing: 0.04em;
+    }
+    #status.error {
+      color: #dc3545; /* error red */
+    }
+
+    #timer {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #555;
+      text-align: center;
+      margin-top: 10px;
+      user-select: none;
+      letter-spacing: 0.06em;
+      text-shadow: 0 1px 1px rgba(255 255 255 / 0.4);
+    }
+
+    h3 {
+      margin-top: 40px;
+      font-weight: 700;
+      color: #222;
+      text-align: center;
+      font-size: 1.8rem;
+      letter-spacing: 0.04em;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Side by side image comparison container */
+    #comparisonContainer {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 20px;
+      width: 100%;
+      max-width: 900px;
+      user-select: none;
+    }
+
+    .imageWrapper {
+      flex: 1 1 45%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #ffffffcc;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow:
+        0 8px 28px rgba(0,0,0,0.12);
+      transition: box-shadow 0.3s ease;
+    }
+    .imageWrapper:hover {
+      box-shadow:
+        0 12px 40px rgba(0,0,0,0.2);
+    }
+
+    .imageWrapper label {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+      color: #0053d1;
+      user-select: text;
+      letter-spacing: 0.03em;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    }
+
+    .imageWrapper img {
+      max-width: 100%;
+      max-height: 420px;
+      border-radius: 14px;
+      object-fit: contain;
+      box-shadow:
+        0 6px 18px rgba(0,0,0,0.15);
+      transition: filter 0.3s ease;
+    }
+    /* Blur input image slightly while loading output */
+    .loadingInput {
+      filter: blur(3px) brightness(0.9);
+      transition: filter 0.5s ease;
+    }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      #comparisonContainer {
+        flex-direction: column;
+        gap: 30px;
+      }
+      .imageWrapper {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Upload Image and Mask</h2>
+  <form id="uploadForm" autocomplete="off">
+    <div>
+      <label for="imageInput">Image:</label>
+      <input type="file" id="imageInput" name="image" accept="image/*" required />
+    </div>
+    <div>
+      <label for="maskInput">Mask:</label>
+      <input type="file" id="maskInput" name="mask" accept="image/*" required />
+    </div>
+    <button type="submit">Restore Image</button>
+  </form>
+
+  <div id="status"></div>
+  <div>Elapsed Time: <span id="timer">0.0</span> seconds</div>
+
+  <h3>Original & Restored:</h3>
+  <div id="comparisonContainer">
+    <div class="imageWrapper">
+      <label>Input Image</label>
+      <img id="inputImage" alt="Input Image" />
+    </div>
+    <div class="imageWrapper">
+      <label>Restored Output Image</label>
+      <img id="resultImage" alt="Restored Output Image" />
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("uploadForm");
+    const status = document.getElementById("status");
+    const timer = document.getElementById("timer");
+    const inputImage = document.getElementById("inputImage");
+    const resultImage = document.getElementById("resultImage");
+    const imageInput = document.getElementById("imageInput");
+
+    let intervalId;
+
+    // Show input image preview on file select
+    imageInput.onchange = function(event) {
+      const file = event.target.files[0];
+      if (!file) {
+        inputImage.src = "";
+        return;
+      }
+      const url = URL.createObjectURL(file);
+      inputImage.src = url;
+    };
+
+    form.onsubmit = async function (e) {
+      e.preventDefault();
+
+      status.textContent = "Processing...";
+      status.classList.remove("error");
+      timer.textContent = "0.0";
+
+      // Show input image preview if not already set (in case user submitted without changing)
+      if (!inputImage.src) {
+        const imageFile = imageInput.files[0];
+        if (imageFile) {
+          inputImage.src = URL.createObjectURL(imageFile);
+        }
+      }
+
+      // Clear previous output
+      resultImage.src = "";
+
+      // Slightly blur input image to indicate processing
+      inputImage.classList.add("loadingInput");
+
+      // Timer start
+      let startTime = Date.now();
+      intervalId = setInterval(() => {
+        let elapsed = (Date.now() - startTime) / 1000;
+        timer.textContent = elapsed.toFixed(1);
+      }, 100);
+
+      const formData = new FormData(form);
+      try {
+        const response = await fetch('/predict/', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) throw new Error("Failed to process image");
+
+        const blob = await response.blob();
+        const imgUrl = URL.createObjectURL(blob);
+        resultImage.src = imgUrl;
+
+        resultImage.onload = () => {
+          status.textContent = "✅ Done!";
+          inputImage.classList.remove("loadingInput");
+        };
+      } catch (err) {
+        status.textContent = "❌ Error: " + err.message;
+        status.classList.add("error");
+        inputImage.classList.remove("loadingInput");
+      } finally {
+        clearInterval(intervalId);
+      }
+    };
+  </script>
+
+</body>
+</html>
